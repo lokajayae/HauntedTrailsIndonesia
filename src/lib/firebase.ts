@@ -2,14 +2,20 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  projectId: process.env.NEXT_PUBLIC_FIRESTORE_DB,
+  projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
 }
 
-// Initialize Firebase with minimal config for Google Cloud Firestore
+// Validate required environment variables
+if (!process.env.NEXT_PUBLIC_PROJECT_ID) {
+  console.warn('Google Cloud Project ID not configured. Please check your .env.local file.')
+}
+
 if (!process.env.NEXT_PUBLIC_FIRESTORE_DB) {
-  console.warn('Firestore project ID not configured. Please check your .env.local file.')
+  console.warn('Firestore Database ID not configured. Please check your .env.local file.')
 }
 
 const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+
+// Initialize Firestore with custom database ID if provided
+const databaseId = process.env.NEXT_PUBLIC_FIRESTORE_DB || '(default)'
+export const db = getFirestore(app, databaseId)
