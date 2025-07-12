@@ -2,17 +2,13 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  authDomain: `${process.env.NEXT_PUBLIC_FIRESTORE_DB}.firebaseapp.com`,
+  apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   projectId: process.env.NEXT_PUBLIC_FIRESTORE_DB,
-  storageBucket: `${process.env.NEXT_PUBLIC_FIRESTORE_DB}.firebasestorage.app`,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:abcdef123456'
 }
 
-// Initialize Firebase only if we have a valid project ID
-if (!process.env.NEXT_PUBLIC_FIRESTORE_DB || process.env.NEXT_PUBLIC_FIRESTORE_DB === 'hauted-trails-db') {
-  console.warn('Firebase project ID not properly configured. Please check your .env.local file.')
+// Initialize Firebase with minimal config for Google Cloud Firestore
+if (!process.env.NEXT_PUBLIC_FIRESTORE_DB) {
+  console.warn('Firestore project ID not configured. Please check your .env.local file.')
 }
 
 const app = initializeApp(firebaseConfig)
