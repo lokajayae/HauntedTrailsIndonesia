@@ -411,9 +411,6 @@ export default function GoogleMap({
                 <p className="text-sm text-gray-300">
                   {currentLocation?.description}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  👻 Drag to look around • No movement allowed
-                </p>
               </div>
               <button
                 onClick={closeStreetView}

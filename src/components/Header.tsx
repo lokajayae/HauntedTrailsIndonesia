@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Ghost, Moon } from "lucide-react";
+import { Ghost } from "lucide-react";
 import Link from "next/link";
 
 export default function Header() {
@@ -15,14 +14,6 @@ export default function Header() {
             HauntedTrails<span className="text-red-500">Indonesia</span>
           </h1>
         </Link>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-300 hover:text-red-400"
-        >
-          <Moon className="w-5 h-5" />
-        </Button>
       </div>
     </header>
   );
