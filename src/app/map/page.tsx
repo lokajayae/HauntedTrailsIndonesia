@@ -1,12 +1,14 @@
 import Header from "@/components/Header"
-import HeroSection from "@/components/HeroSection"
+import MapSection from "@/components/MapSection"
 import Footer from "@/components/Footer"
 
-export default function Home() {
+export default function MapPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Header />
-      <HeroSection />
+      <div className="pt-20">
+        <MapSection />
+      </div>
       <Footer />
     </div>
   )

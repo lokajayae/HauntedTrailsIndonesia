@@ -41,7 +41,16 @@ export default function HeroSection() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button 
+          <a href="/map">
+            <Button 
+              size="lg" 
+              className="bg-red-600 hover:bg-red-700 text-white glow-red px-8 py-3 text-lg"
+            >
+              <MapPin className="w-5 h-5 mr-2" />
+              Explore Haunted Map
+            </Button>
+          </a>
+        </div>
             size="lg" 
             className="bg-red-600 hover:bg-red-700 text-white glow-red px-8 py-3 text-lg"
           >
