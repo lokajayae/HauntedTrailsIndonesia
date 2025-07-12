@@ -1,5 +1,4 @@
 import Header from "@/components/Header"
-import Header from "@/components/Header"
 import MapSection from "@/components/MapSection"
 import Footer from "@/components/Footer"
 
