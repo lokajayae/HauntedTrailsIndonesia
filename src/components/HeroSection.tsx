@@ -11,17 +11,6 @@ export default function HeroSection() {
         <div className="fog-effect absolute inset-0"></div>
       </div>
       
-      {/* Floating elements */}
-      <div className="absolute top-20 left-10 animate-bounce-slow">
-        <Skull className="w-8 h-8 text-red-500/30" />
-      </div>
-      <div className="absolute top-40 right-20 animate-pulse">
-        <Eye className="w-6 h-6 text-red-400/40" />
-      </div>
-      <div className="absolute bottom-40 left-20 animate-bounce-slow">
-        <MapPin className="w-7 h-7 text-red-600/30" />
-      </div>
-      
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <Badge variant="outline" className="mb-6 border-red-500/30 text-red-400 bg-red-950/20">
           🇮🇩 Explore Indonesia's Dark Side

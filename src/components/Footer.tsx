@@ -21,37 +21,8 @@ export default function Footer() {
             </div>
           </div>
           
-          <div>
-            <h4 className="text-white font-semibold mb-4">Explore</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-red-400 transition-colors">Haunted Map</a></li>
-              <li><a href="#" className="hover:text-red-400 transition-colors">Urban Legends</a></li>
-              <li><a href="#" className="hover:text-red-400 transition-colors">Ghost Stories</a></li>
-              <li><a href="#" className="hover:text-red-400 transition-colors">Submit Story</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="text-white font-semibold mb-4">Categories</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li className="flex items-center">
-                <Skull className="w-3 h-3 mr-2 text-red-500" />
-                <span className="hover:text-red-400 transition-colors cursor-pointer">Spirits</span>
-              </li>
-              <li className="flex items-center">
-                <MapPin className="w-3 h-3 mr-2 text-red-500" />
-                <span className="hover:text-red-400 transition-colors cursor-pointer">Haunted Places</span>
-              </li>
-              <li className="flex items-center">
-                <Eye className="w-3 h-3 mr-2 text-red-500" />
-                <span className="hover:text-red-400 transition-colors cursor-pointer">Sightings</span>
-              </li>
-              <li className="flex items-center">
-                <Ghost className="w-3 h-3 mr-2 text-red-500" />
-                <span className="hover:text-red-400 transition-colors cursor-pointer">Folklore</span>
-              </li>
-            </ul>
-          </div>
+          <div></div>
+          <div></div>
         </div>
         
         <div className="border-t border-red-900/20 mt-8 pt-8 text-center">
