@@ -51,21 +51,6 @@ export default function HeroSection() {
             </Button>
           </a>
         </div>
-            size="lg" 
-            className="bg-red-600 hover:bg-red-700 text-white glow-red px-8 py-3 text-lg"
-          >
-            <MapPin className="w-5 h-5 mr-2" />
-            Explore Haunted Map
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-red-500/50 text-red-400 hover:bg-red-950/20 px-8 py-3 text-lg"
-          >
-            <Skull className="w-5 h-5 mr-2" />
-            Read Ghost Stories
-          </Button>
-        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-6">
