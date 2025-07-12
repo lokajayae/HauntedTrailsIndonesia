@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
@@ -120,30 +120,49 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   .spooky-font {
-    font-family: 'Creepster', cursive;
+    font-family: "Creepster", cursive;
   }
-  
+
   .horror-font {
-    font-family: 'Nosifer', cursive;
+    font-family: "Nosifer", cursive;
   }
-  
+
   .fog-effect {
-    background: linear-gradient(45deg, rgba(0,0,0,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%);
+    background: linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
     animation: fog 8s ease-in-out infinite;
   }
-  
+
   @keyframes fog {
-    0%, 100% { opacity: 0.3; transform: translateX(-10px); }
-    50% { opacity: 0.7; transform: translateX(10px); }
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateX(-10px);
+    }
+    50% {
+      opacity: 0.7;
+      transform: translateX(10px);
+    }
   }
-  
+
   .glow-red {
     box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
   }
-  
+
   .text-glow {
     text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

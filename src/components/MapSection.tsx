@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import GoogleMap from "./GoogleMap";
 
 export default function MapSection() {
@@ -10,12 +9,6 @@ export default function MapSection() {
     <section id="map" className="py-20 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <Badge
-            variant="outline"
-            className="mb-4 border-red-500/30 text-red-400 bg-red-950/20"
-          >
-            🗺️ Interactive Experience
-          </Badge>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 spooky-font text-glow">
             Haunted Map of Indonesia
           </h2>
