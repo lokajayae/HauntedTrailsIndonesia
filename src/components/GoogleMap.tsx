@@ -1,288 +1,446 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-import { HauntedLocation } from '@/types/location'
+import { useEffect, useRef, useState, useCallback } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { HauntedLocation } from "@/types/location";
 
-interface GoogleMapProps {
-  apiKey: string
-  center: { lat: number; lng: number }
-  zoom: number
-  className?: string
+// Extend Window interface to include Google Maps
+declare global {
+  interface Window {
+    google: typeof google;
+    initMap: () => void;
+  }
 }
 
-export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const [locations, setLocations] = useState<HauntedLocation[]>([])
-  const [loading, setLoading] = useState(true)
+interface GoogleMapProps {
+  apiKey: string;
+  center: { lat: number; lng: number };
+  zoom: number;
+  className?: string;
+}
+
+export default function GoogleMap({
+  apiKey,
+  center,
+  zoom,
+  className,
+}: GoogleMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const streetViewRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const streetViewInstanceRef = useRef<google.maps.StreetViewPanorama | null>(
+    null
+  );
+  const [locations, setLocations] = useState<HauntedLocation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showStreetView, setShowStreetView] = useState(false);
+  const [currentLocation, setCurrentLocation] =
+    useState<HauntedLocation | null>(null);
 
   // Fetch locations from Firestore
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const locationsCollection = collection(db, 'locations')
-        const snapshot = await getDocs(locationsCollection)
-        const fetchedLocations: HauntedLocation[] = []
-        
+        const locationsCollection = collection(db, "locations");
+        const snapshot = await getDocs(locationsCollection);
+        const fetchedLocations: HauntedLocation[] = [];
+
         snapshot.forEach((doc) => {
-          const data = doc.data()
+          const data = doc.data();
           fetchedLocations.push({
             id: doc.id,
             name: data.name,
             description: data.description,
             position: {
               latitude: data.position.latitude,
-              longitude: data.position.longitude
-            }
-          })
-        })
-        
-        setLocations(fetchedLocations)
+              longitude: data.position.longitude,
+            },
+          });
+        });
+
+        setLocations(fetchedLocations);
       } catch (error) {
-        console.error('Error fetching locations:', error)
+        console.error("Error fetching locations:", error);
         // Fallback to sample data if Firestore fails
         setLocations([
           {
-            id: '1',
-            name: 'Tanjakan Emen',
-            description: 'Tanjakan Emen is an extremely steep road with supernatural activities reported by locals.',
-            position: { latitude: -6.5716, longitude: 107.7587 }
-          }
-        ])
+            id: "1",
+            name: "Tanjakan Emen",
+            description:
+              "Tanjakan Emen is an extremely steep road with supernatural activities reported by locals.",
+            position: { latitude: -6.5716, longitude: 107.7587 },
+          },
+        ]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchLocations()
-  }, [])
+    fetchLocations();
+  }, []);
+
+  // Initialize Street View when needed
+  const initStreetView = useCallback((location: HauntedLocation) => {
+    if (!streetViewRef.current) return;
+
+    const position = {
+      lat: location.position.latitude,
+      lng: location.position.longitude,
+    };
+
+    streetViewInstanceRef.current = new google.maps.StreetViewPanorama(
+      streetViewRef.current,
+      {
+        position: position,
+        pov: {
+          heading: 0,
+          pitch: 0,
+        },
+        zoom: 1,
+        // Disable all navigation controls and arrows
+        clickToGo: false,
+        linksControl: false,
+        panControl: false,
+        zoomControl: false,
+        addressControl: false,
+        fullscreenControl: false,
+        motionTracking: false,
+        motionTrackingControl: false,
+        enableCloseButton: false,
+        // Apply spooky styling to Street View
+        styles: [
+          {
+            elementType: "geometry",
+            stylers: [{ color: "#1d2c4d" }],
+          },
+          {
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#8ec3b9" }],
+          },
+          {
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1a3646" }],
+          },
+        ],
+      }
+    );
+
+    // Handle Street View status
+    streetViewInstanceRef.current.addListener("status_changed", () => {
+      if (streetViewInstanceRef.current?.getStatus() === "ZERO_RESULTS") {
+        console.warn("Street View not available for this location");
+        // Could show a message or fallback to satellite view
+      }
+    });
+  }, []);
+
+  // Close Street View and return to map
+  const closeStreetView = useCallback(() => {
+    setShowStreetView(false);
+    setCurrentLocation(null);
+    if (streetViewInstanceRef.current) {
+      streetViewInstanceRef.current = null;
+    }
+  }, []);
+
+  // Open Street View for a location
+  const openStreetView = useCallback(
+    (location: HauntedLocation) => {
+      setCurrentLocation(location);
+      setShowStreetView(true);
+
+      // Initialize Street View after state update
+      setTimeout(() => {
+        initStreetView(location);
+      }, 100);
+    },
+    [initStreetView]
+  );
 
   useEffect(() => {
-    if (!apiKey || apiKey === 'Example' || loading) {
-      console.warn('Google Maps API key not provided or is placeholder')
-      return
+    if (!apiKey || apiKey === "Example" || loading) {
+      console.warn("Google Maps API key not provided or is placeholder");
+      return;
     }
 
     const initMap = () => {
-      if (!mapRef.current) return
+      if (!mapRef.current) return;
 
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapTypeId: google.maps.MapTypeId.SATELLITE,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false,
         styles: [
           {
-            "elementType": "geometry",
-            "stylers": [{"color": "#1d2c4d"}]
+            elementType: "geometry",
+            stylers: [{ color: "#1d2c4d" }],
           },
           {
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#8ec3b9"}]
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#8ec3b9" }],
           },
           {
-            "elementType": "labels.text.stroke",
-            "stylers": [{"color": "#1a3646"}]
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1a3646" }],
           },
           {
-            "featureType": "administrative.country",
-            "elementType": "geometry.stroke",
-            "stylers": [{"color": "#4b6878"}]
+            featureType: "administrative.country",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#4b6878" }],
           },
           {
-            "featureType": "administrative.land_parcel",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#64779f"}]
+            featureType: "administrative.land_parcel",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#64779f" }],
           },
           {
-            "featureType": "administrative.province",
-            "elementType": "geometry.stroke",
-            "stylers": [{"color": "#4b6878"}]
+            featureType: "administrative.province",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#4b6878" }],
           },
           {
-            "featureType": "landscape.man_made",
-            "elementType": "geometry.stroke",
-            "stylers": [{"color": "#334e87"}]
+            featureType: "landscape.man_made",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#334e87" }],
           },
           {
-            "featureType": "landscape.natural",
-            "elementType": "geometry",
-            "stylers": [{"color": "#023e58"}]
+            featureType: "landscape.natural",
+            elementType: "geometry",
+            stylers: [{ color: "#023e58" }],
           },
           {
-            "featureType": "poi",
-            "elementType": "geometry",
-            "stylers": [{"color": "#283d6a"}]
+            featureType: "poi",
+            elementType: "geometry",
+            stylers: [{ color: "#283d6a" }],
           },
           {
-            "featureType": "poi",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#6f9ba5"}]
+            featureType: "poi",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#6f9ba5" }],
           },
           {
-            "featureType": "poi",
-            "elementType": "labels.text.stroke",
-            "stylers": [{"color": "#1d2c4d"}]
+            featureType: "poi",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1d2c4d" }],
           },
           {
-            "featureType": "poi.park",
-            "elementType": "geometry.fill",
-            "stylers": [{"color": "#023e58"}]
+            featureType: "poi.park",
+            elementType: "geometry.fill",
+            stylers: [{ color: "#023e58" }],
           },
           {
-            "featureType": "poi.park",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#3C7680"}]
+            featureType: "poi.park",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#3C7680" }],
           },
           {
-            "featureType": "road",
-            "elementType": "geometry",
-            "stylers": [{"color": "#304a7d"}]
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#304a7d" }],
           },
           {
-            "featureType": "road",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#98a5be"}]
+            featureType: "road",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#98a5be" }],
           },
           {
-            "featureType": "road",
-            "elementType": "labels.text.stroke",
-            "stylers": [{"color": "#1d2c4d"}]
+            featureType: "road",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1d2c4d" }],
           },
           {
-            "featureType": "road.highway",
-            "elementType": "geometry",
-            "stylers": [{"color": "#2c6675"}]
+            featureType: "road.highway",
+            elementType: "geometry",
+            stylers: [{ color: "#2c6675" }],
           },
           {
-            "featureType": "road.highway",
-            "elementType": "geometry.stroke",
-            "stylers": [{"color": "#255763"}]
+            featureType: "road.highway",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#255763" }],
           },
           {
-            "featureType": "road.highway",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#b0d5ce"}]
+            featureType: "road.highway",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#b0d5ce" }],
           },
           {
-            "featureType": "road.highway",
-            "elementType": "labels.text.stroke",
-            "stylers": [{"color": "#023e58"}]
+            featureType: "road.highway",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#023e58" }],
           },
           {
-            "featureType": "transit",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#98a5be"}]
+            featureType: "transit",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#98a5be" }],
           },
           {
-            "featureType": "transit",
-            "elementType": "labels.text.stroke",
-            "stylers": [{"color": "#1d2c4d"}]
+            featureType: "transit",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#1d2c4d" }],
           },
           {
-            "featureType": "transit.line",
-            "elementType": "geometry.fill",
-            "stylers": [{"color": "#283d6a"}]
+            featureType: "transit.line",
+            elementType: "geometry.fill",
+            stylers: [{ color: "#283d6a" }],
           },
           {
-            "featureType": "transit.station",
-            "elementType": "geometry",
-            "stylers": [{"color": "#3a4762"}]
+            featureType: "transit.station",
+            elementType: "geometry",
+            stylers: [{ color: "#3a4762" }],
           },
           {
-            "featureType": "water",
-            "elementType": "geometry",
-            "stylers": [{"color": "#0e1626"}]
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#0e1626" }],
           },
           {
-            "featureType": "water",
-            "elementType": "labels.text.fill",
-            "stylers": [{"color": "#4e6d70"}]
-          }
-        ]
-      })
+            featureType: "water",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#4e6d70" }],
+          },
+        ],
+      });
 
       // Add markers from Firestore data
-      locations.forEach(location => {
+      locations.forEach((location) => {
         const marker = new google.maps.Marker({
-          position: { 
-            lat: location.position.latitude, 
-            lng: location.position.longitude 
+          position: {
+            lat: location.position.latitude,
+            lng: location.position.longitude,
           },
-          map: mapInstanceRef.current,
+          map: mapInstanceRef.current || undefined,
           title: location.name,
           icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            url:
+              "data:image/svg+xml;charset=UTF-8," +
+              encodeURIComponent(`
               <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="16" cy="16" r="12" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
                 <text x="16" y="20" text-anchor="middle" fill="white" font-size="16">👻</text>
               </svg>
             `),
-            scaledSize: new google.maps.Size(32, 32)
-          }
-        })
+            scaledSize: new google.maps.Size(32, 32),
+          },
+        });
 
-        const infoWindow = new google.maps.InfoWindow({
-          content: `
-            <div style="color: #000; padding: 8px;">
-              <h3 style="margin: 0 0 8px 0; color: #dc2626;">${location.name}</h3>
-              <p style="margin: 0; font-size: 14px;">${location.description}</p>
-            </div>
-          `
-        })
-
-        marker.addListener('click', () => {
-          infoWindow.open(mapInstanceRef.current, marker)
-        })
-      })
-    }
+        // Updated marker click handler to open Street View
+        marker.addListener("click", () => {
+          openStreetView(location);
+        });
+      });
+    };
 
     // Load Google Maps script if not already loaded
     if (!window.google) {
-      const script = document.createElement('script')
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`
-      script.async = true
-      script.defer = true
-      
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+      script.async = true;
+      script.defer = true;
+
       // Make initMap globally available
-      ;(window as any).initMap = initMap
-      
-      document.head.appendChild(script)
+      window.initMap = initMap;
+
+      document.head.appendChild(script);
     } else {
-      initMap()
+      initMap();
     }
 
     return () => {
       // Cleanup if needed
       if (mapInstanceRef.current) {
-        mapInstanceRef.current = null
+        mapInstanceRef.current = null;
       }
-    }
-  }, [apiKey, center, zoom, locations, loading])
+    };
+  }, [apiKey, center, zoom, locations, loading, openStreetView]);
 
-  if (!apiKey || apiKey === 'Example') {
+  if (!apiKey || apiKey === "Example") {
     return (
-      <div className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}>
+      <div
+        className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}
+      >
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h3 className="text-xl font-bold text-white mb-2">Google Maps API Key Required</h3>
+          <h3 className="text-xl font-bold text-white mb-2">
+            Google Maps API Key Required
+          </h3>
           <p className="text-gray-400 text-sm">
             Please add your Google Maps API key to the .env.local file
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
     return (
-      <div className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}>
+      <div
+        className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}
+      >
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4 animate-pulse">👻</div>
           <p className="text-gray-400 text-sm">Loading haunted locations...</p>
         </div>
       </div>
-    )
+    );
   }
-  return <div ref={mapRef} className={className} />
+
+  return (
+    <div className={`${className} relative`}>
+      {/* Main Map View */}
+      <div
+        ref={mapRef}
+        className={`w-full h-full transition-opacity duration-300 ${
+          showStreetView ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      />
+
+      {/* Street View Overlay */}
+      {showStreetView && (
+        <div className="absolute inset-0 bg-black">
+          {/* Street View Header */}
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <h3 className="text-xl font-bold text-red-400">
+                  {currentLocation?.name}
+                </h3>
+                <p className="text-sm text-gray-300">
+                  {currentLocation?.description}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  👻 Drag to look around • No movement allowed
+                </p>
+              </div>
+              <button
+                onClick={closeStreetView}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+              >
+                <span>×</span>
+                <span>Close Street View</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Street View Container */}
+          <div ref={streetViewRef} className="w-full h-full" />
+
+          {/* Street View Loading State */}
+          {!streetViewInstanceRef.current && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="text-center">
+                <div className="text-red-500 text-4xl mb-4 animate-pulse">
+                  👻
+                </div>
+                <p className="text-gray-400 text-sm">Loading Street View...</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
