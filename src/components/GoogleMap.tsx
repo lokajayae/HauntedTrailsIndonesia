@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { HauntedLocation } from '@/types/location'
 
 interface GoogleMapProps {
   apiKey: string
@@ -12,9 +15,52 @@ interface GoogleMapProps {
 export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
+  const [locations, setLocations] = useState<HauntedLocation[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch locations from Firestore
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const locationsCollection = collection(db, 'locations')
+        const snapshot = await getDocs(locationsCollection)
+        const fetchedLocations: HauntedLocation[] = []
+        
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          fetchedLocations.push({
+            id: doc.id,
+            name: data.name,
+            description: data.description,
+            position: {
+              latitude: data.position.latitude,
+              longitude: data.position.longitude
+            }
+          })
+        })
+        
+        setLocations(fetchedLocations)
+      } catch (error) {
+        console.error('Error fetching locations:', error)
+        // Fallback to sample data if Firestore fails
+        setLocations([
+          {
+            id: '1',
+            name: 'Tanjakan Emen',
+            description: 'Tanjakan Emen is an extremely steep road with supernatural activities reported by locals.',
+            position: { latitude: -6.5716, longitude: 107.7587 }
+          }
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLocations()
+  }, [])
 
   useEffect(() => {
-    if (!apiKey || apiKey === 'Example') {
+    if (!apiKey || apiKey === 'Example' || loading) {
       console.warn('Google Maps API key not provided or is placeholder')
       return
     }
@@ -156,30 +202,15 @@ export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMap
         ]
       })
 
-      // Add some sample haunted location markers
-      const hauntedLocations = [
-        {
-          position: { lat: -6.9175, lng: 107.6191 }, // Bandung center
-          title: "Gedung Sate",
-          description: "Historic building with reported supernatural activities"
-        },
-        {
-          position: { lat: -6.8957, lng: 107.6337 }, // North Bandung
-          title: "Villa Istana Bunga",
-          description: "Abandoned villa with ghostly sightings"
-        },
-        {
-          position: { lat: -6.9389, lng: 107.6233 }, // South Bandung
-          title: "Lawang Sewu Bandung",
-          description: "Old colonial building with dark history"
-        }
-      ]
-
-      hauntedLocations.forEach(location => {
+      // Add markers from Firestore data
+      locations.forEach(location => {
         const marker = new google.maps.Marker({
-          position: location.position,
+          position: { 
+            lat: location.position.latitude, 
+            lng: location.position.longitude 
+          },
           map: mapInstanceRef.current,
-          title: location.title,
+          title: location.name,
           icon: {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
               <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -194,7 +225,7 @@ export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMap
         const infoWindow = new google.maps.InfoWindow({
           content: `
             <div style="color: #000; padding: 8px;">
-              <h3 style="margin: 0 0 8px 0; color: #dc2626;">${location.title}</h3>
+              <h3 style="margin: 0 0 8px 0; color: #dc2626;">${location.name}</h3>
               <p style="margin: 0; font-size: 14px;">${location.description}</p>
             </div>
           `
@@ -227,7 +258,7 @@ export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMap
         mapInstanceRef.current = null
       }
     }
-  }, [apiKey, center, zoom])
+  }, [apiKey, center, zoom, locations, loading])
 
   if (!apiKey || apiKey === 'Example') {
     return (
@@ -243,5 +274,15 @@ export default function GoogleMap({ apiKey, center, zoom, className }: GoogleMap
     )
   }
 
+  if (loading) {
+    return (
+      <div className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}>
+        <div className="text-center">
+          <div className="text-red-500 text-4xl mb-4 animate-pulse">👻</div>
+          <p className="text-gray-400 text-sm">Loading haunted locations...</p>
+        </div>
+      </div>
+    )
+  }
   return <div ref={mapRef} className={className} />
 }
