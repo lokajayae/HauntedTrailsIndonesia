@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  User
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+  User,
+} from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 // User data type interface
 interface UserType {
@@ -31,10 +32,11 @@ export const useAuth = () => useContext(AuthContext);
 
 // Create the auth context provider
 export const AuthContextProvider = ({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) => {
+  const router = useRouter();
   // Define the constants for the user and loading state
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,7 +49,7 @@ export const AuthContextProvider = ({
           email: user.email,
           uid: user.uid,
           displayName: user.displayName,
-          photoURL: user.photoURL
+          photoURL: user.photoURL,
         });
       } else {
         setUser(null);
@@ -64,20 +66,16 @@ export const AuthContextProvider = ({
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error("Error signing in with Google:", error);
       throw error;
     }
   };
 
-  // Logout the user
+  // Log out function to log out the user
   const logOut = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
-    }
+    await signOut(auth);
+    setUser(null);
+    router.push("/");
   };
 
   // Wrap the children with the context provider
@@ -86,4 +84,4 @@ export const AuthContextProvider = ({
       {loading ? null : children}
     </AuthContext.Provider>
   );
-}; 
+};

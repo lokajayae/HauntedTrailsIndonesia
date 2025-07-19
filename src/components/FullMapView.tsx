@@ -6,9 +6,11 @@ import { db } from "@/lib/firebase";
 import { HauntedLocation } from "@/types/location";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Ghost, Search, MapPin, X } from "lucide-react";
+import { Ghost, Search, MapPin, X, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import GoogleMap from "./GoogleMap";
+import Link from "next/link";
 
 export default function FullMapView() {
   const [locations, setLocations] = useState<HauntedLocation[]>([]);
@@ -24,6 +26,9 @@ export default function FullMapView() {
     lng: 107.62049428187026,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const { logOut } = useAuth();
+  const router = useRouter();
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "Example";
 
@@ -109,6 +114,16 @@ export default function FullMapView() {
     });
   };
 
+  // Handle logout
+  const handleLogOut = async () => {
+    try {
+      await logOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-black">
       {/* Sidebar */}
@@ -120,12 +135,15 @@ export default function FullMapView() {
         <div className="p-4 border-b border-red-900/30">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
               <Ghost className="w-6 h-6 text-red-500" />
               <h1 className="text-xl font-bold text-white spooky-font">
                 Haunted<span className="text-red-500">Trails</span>
               </h1>
-            </div>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
@@ -215,12 +233,14 @@ export default function FullMapView() {
 
         {/* Footer */}
         <div className="p-4 border-t border-red-900/30">
-          <Badge
+          <Button
+            onClick={handleLogOut}
             variant="outline"
-            className="w-full justify-center border-red-500/30 text-red-400 bg-red-950/20"
+            className="w-full border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:border-red-400 hover:text-red-400"
           >
-            🇮🇩 Indonesia&apos;s Horror
-          </Badge>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
 

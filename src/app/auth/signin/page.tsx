@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ghost } from "lucide-react";
+import { Ghost, ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -41,7 +41,18 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4 relative">
+      {/* Back button positioned at top-left */}
+      <Button
+        onClick={() => router.push("/")}
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4 text-gray-400 hover:text-white hover:bg-red-900/20 z-10"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+
       <Card className="w-full max-w-md bg-gray-900/50 border-red-900/30 backdrop-blur-sm">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">

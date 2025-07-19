@@ -478,7 +478,7 @@ export default function GoogleMap({
         <div className="absolute inset-0 bg-black">
           {/* Street View Header */}
           <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 to-black/60 p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-1">
               <div className="text-white">
                 <h3 className="text-xl font-bold text-red-400 mb-1">
                   {currentLocation?.name}

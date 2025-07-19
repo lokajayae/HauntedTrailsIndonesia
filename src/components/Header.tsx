@@ -64,9 +64,9 @@ export default function Header() {
           ) : (
             <Link href="/auth/signin">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-red-500/50 text-red-400"
+                className="text-gray-300 hover:text-red-400"
               >
                 <LogIn className="w-4 h-4" />
                 <span className="hidden md:inline ml-2">Sign In</span>
