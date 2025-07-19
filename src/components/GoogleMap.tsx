@@ -168,6 +168,17 @@ export default function GoogleMap({
     }
   }, [center, zoom]);
 
+  // Handle selectedLocation changes - update street view if currently open
+  useEffect(() => {
+    if (selectedLocation && showStreetView) {
+      // If street view is open and we have a new selected location, update it
+      setCurrentLocation(selectedLocation);
+      setTimeout(() => {
+        initStreetView(selectedLocation);
+      }, 100);
+    }
+  }, [selectedLocation, showStreetView, initStreetView]);
+
   // Handle selectedLocation changes from sidebar
   useEffect(() => {
     if (selectedLocation && showStreetView) {
