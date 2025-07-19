@@ -2,11 +2,19 @@
 
 import { Ghost, User, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
 export default function Header() {
-  const { data: session, status } = useSession();
+  const { user, logOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   return (
     <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-red-900/20">
@@ -22,14 +30,14 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
-          {status === "loading" ? (
+          {loading ? (
             <div className="w-8 h-8 animate-pulse bg-gray-700 rounded-full"></div>
-          ) : session ? (
+          ) : user ? (
             <div className="flex items-center space-x-3">
-              {session.user?.image ? (
+              {user.photoURL ? (
                 <img
-                  src={session.user.image}
-                  alt={session.user.name || "User"}
+                  src={user.photoURL}
+                  alt={user.displayName || "User"}
                   className="w-8 h-8 rounded-full border border-red-500/50"
                 />
               ) : (
@@ -38,10 +46,10 @@ export default function Header() {
                 </div>
               )}
               <span className="text-sm text-white hidden md:block">
-                {session.user?.name}
+                {user.displayName || user.email}
               </span>
               <Button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 variant="ghost"
                 size="sm"
                 className="text-gray-300 hover:text-red-400"

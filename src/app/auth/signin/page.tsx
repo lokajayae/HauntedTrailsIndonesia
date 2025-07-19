@@ -1,11 +1,32 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ghost } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignIn() {
+  const { signInWithGoogle } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await signInWithGoogle();
+      router.push("/"); // Redirect to home page after successful sign in
+    } catch (error: any) {
+      console.error("Sign in error:", error);
+      setError(error.message || "Failed to sign in. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-gray-900/50 border-red-900/30 backdrop-blur-sm">
@@ -21,9 +42,16 @@ export default function SignIn() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-400 bg-red-900/20 border border-red-900/30 rounded-md">
+              {error}
+            </div>
+          )}
+          
           <Button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleSignIn}
+            disabled={loading}
+            className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
             size="lg"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -44,7 +72,7 @@ export default function SignIn() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Sign in with Google
+            {loading ? "Signing in..." : "Sign in with Google"}
           </Button>
 
           <div className="text-center">
