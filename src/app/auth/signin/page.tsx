@@ -19,9 +19,13 @@ export default function SignIn() {
       setError(null);
       await signInWithGoogle();
       router.push("/"); // Redirect to home page after successful sign in
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Sign in error:", error);
-      setError(error.message || "Failed to sign in. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to sign in. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -47,7 +51,7 @@ export default function SignIn() {
               {error}
             </div>
           )}
-          
+
           <Button
             onClick={handleSignIn}
             disabled={loading}
@@ -78,7 +82,7 @@ export default function SignIn() {
           <div className="text-center">
             <p className="text-xs text-gray-500">
               By signing in, you agree to explore haunted locations at your own
-              risk 👻
+              risk
             </p>
           </div>
         </CardContent>
