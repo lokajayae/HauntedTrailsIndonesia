@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "HauntedTrailsIndonesia - Explore Indonesia's Dark Legends",
-  description: "Discover the most haunted places and urban legends across Indonesia. Explore supernatural sites, ghost stories, and mysterious locations.",
+  description:
+    "Discover the most haunted places and urban legends across Indonesia. Explore supernatural sites, ghost stories, and mysterious locations.",
 };
 
 export default function RootLayout({
@@ -27,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

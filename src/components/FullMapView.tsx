@@ -19,7 +19,10 @@ export default function FullMapView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] =
     useState<HauntedLocation | null>(null);
-  const [mapCenter, setMapCenter] = useState({ lat: -6.9175, lng: 107.6191 });
+  const [mapCenter, setMapCenter] = useState({
+    lat: -6.916053050082585,
+    lng: 107.62049428187026,
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "Example";
@@ -156,7 +159,6 @@ export default function FullMapView() {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center">
-              <div className="text-red-500 text-2xl mb-2 animate-pulse">👻</div>
               <p className="text-gray-400 text-sm">
                 Loading haunted locations...
               </p>
@@ -240,7 +242,8 @@ export default function FullMapView() {
         <GoogleMap
           apiKey={apiKey}
           center={mapCenter}
-          zoom={selectedLocation ? 15 : 8}
+          zoom={selectedLocation ? 15 : 11}
+          selectedLocation={selectedLocation}
           className="w-full h-full"
         />
       </div>

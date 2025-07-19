@@ -17,6 +17,7 @@ interface GoogleMapProps {
   apiKey: string;
   center: { lat: number; lng: number };
   zoom: number;
+  selectedLocation?: HauntedLocation | null;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export default function GoogleMap({
   apiKey,
   center,
   zoom,
+  selectedLocation,
   className,
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -158,6 +160,38 @@ export default function GoogleMap({
     [initStreetView]
   );
 
+  // Update map center and zoom when props change
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setZoom(zoom);
+    }
+  }, [center, zoom]);
+
+  // Handle selectedLocation changes - update street view if currently open
+  useEffect(() => {
+    if (selectedLocation && showStreetView) {
+      // If street view is open and we have a new selected location, update it
+      setCurrentLocation(selectedLocation);
+      setTimeout(() => {
+        initStreetView(selectedLocation);
+      }, 100);
+    }
+  }, [selectedLocation, showStreetView, initStreetView]);
+
+  // Handle selectedLocation changes from sidebar
+  useEffect(() => {
+    if (selectedLocation && showStreetView) {
+      // If Street View is open and a new location is selected from sidebar,
+      // update the Street View to show the new location
+      setCurrentLocation(selectedLocation);
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        initStreetView(selectedLocation);
+      }, 150);
+    }
+  }, [selectedLocation, showStreetView, initStreetView]);
+
   useEffect(() => {
     if (!apiKey || apiKey === "Example" || loading) {
       console.warn("Google Maps API key not provided or is placeholder");
@@ -170,22 +204,47 @@ export default function GoogleMap({
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
         center,
         zoom,
-        mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.ROADMAP, // Changed from SATELLITE to ROADMAP to show labels
         streetViewControl: false,
         mapTypeControl: false,
         fullscreenControl: false,
+        clickableIcons: false, // Disable clicking on default POI markers
         styles: [
+          // Base map styling with spooky theme
           {
             elementType: "geometry",
             stylers: [{ color: "#1d2c4d" }],
           },
+          // Make labels more visible with better colors
           {
             elementType: "labels.text.fill",
-            stylers: [{ color: "#8ec3b9" }],
+            stylers: [{ color: "#ffffff" }], // White text for better visibility
           },
           {
             elementType: "labels.text.stroke",
-            stylers: [{ color: "#1a3646" }],
+            stylers: [{ color: "#000000" }], // Black outline for contrast
+          },
+          // Ensure city names are visible
+          {
+            featureType: "administrative.locality",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#ffcc00" }], // Gold color for cities
+          },
+          {
+            featureType: "administrative.locality",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#000000" }],
+          },
+          // Make road labels visible
+          {
+            featureType: "road",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#cccccc" }], // Light gray for roads
+          },
+          {
+            featureType: "road",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#000000" }],
           },
           {
             featureType: "administrative.country",
@@ -212,20 +271,38 @@ export default function GoogleMap({
             elementType: "geometry",
             stylers: [{ color: "#023e58" }],
           },
+          // Hide all POI elements (businesses, attractions, etc.)
           {
             featureType: "poi",
-            elementType: "geometry",
-            stylers: [{ color: "#283d6a" }],
+            stylers: [{ visibility: "off" }],
           },
           {
-            featureType: "poi",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6f9ba5" }],
+            featureType: "poi.business",
+            stylers: [{ visibility: "off" }],
           },
           {
-            featureType: "poi",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#1d2c4d" }],
+            featureType: "poi.attraction",
+            stylers: [{ visibility: "off" }],
+          },
+          {
+            featureType: "poi.government",
+            stylers: [{ visibility: "off" }],
+          },
+          {
+            featureType: "poi.medical",
+            stylers: [{ visibility: "off" }],
+          },
+          {
+            featureType: "poi.place_of_worship",
+            stylers: [{ visibility: "off" }],
+          },
+          {
+            featureType: "poi.school",
+            stylers: [{ visibility: "off" }],
+          },
+          {
+            featureType: "poi.sports_complex",
+            stylers: [{ visibility: "off" }],
           },
           {
             featureType: "poi.park",
@@ -320,7 +397,6 @@ export default function GoogleMap({
               encodeURIComponent(`
               <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="16" cy="16" r="12" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
-                <text x="16" y="20" text-anchor="middle" fill="white" font-size="16">👻</text>
               </svg>
             `),
             scaledSize: new google.maps.Size(32, 32),
@@ -381,7 +457,6 @@ export default function GoogleMap({
         className={`${className} flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900`}
       >
         <div className="text-center">
-          <div className="text-red-500 text-4xl mb-4 animate-pulse">👻</div>
           <p className="text-gray-400 text-sm">Loading haunted locations...</p>
         </div>
       </div>
@@ -402,10 +477,10 @@ export default function GoogleMap({
       {showStreetView && (
         <div className="absolute inset-0 bg-black">
           {/* Street View Header */}
-          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 to-black/60 p-4">
             <div className="flex items-center justify-between">
               <div className="text-white">
-                <h3 className="text-xl font-bold text-red-400">
+                <h3 className="text-xl font-bold text-red-400 mb-1">
                   {currentLocation?.name}
                 </h3>
                 <p className="text-sm text-gray-300">
@@ -414,10 +489,10 @@ export default function GoogleMap({
               </div>
               <button
                 onClick={closeStreetView}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow-lg"
               >
                 <span>×</span>
-                <span>Close Street View</span>
+                <span>Close</span>
               </button>
             </div>
           </div>
@@ -429,9 +504,6 @@ export default function GoogleMap({
           {!streetViewInstanceRef.current && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
               <div className="text-center">
-                <div className="text-red-500 text-4xl mb-4 animate-pulse">
-                  👻
-                </div>
                 <p className="text-gray-400 text-sm">Loading Street View...</p>
               </div>
             </div>

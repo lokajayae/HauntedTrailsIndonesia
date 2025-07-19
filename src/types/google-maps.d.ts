@@ -42,6 +42,7 @@ declare namespace google.maps {
     streetViewControl?: boolean;
     mapTypeControl?: boolean;
     fullscreenControl?: boolean;
+    clickableIcons?: boolean;
   }
 
   interface MarkerOptions {
@@ -95,6 +96,7 @@ declare namespace google.maps {
 
   interface MapTypeStyler {
     color?: string;
+    visibility?: string;
   }
 
   enum MapTypeId {
