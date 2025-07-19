@@ -4,21 +4,30 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ghost } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function SignIn() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect to intended page after successful sign in
+  useEffect(() => {
+    if (user) {
+      const from = searchParams.get("from") || "/";
+      router.push(from);
+    }
+  }, [user, router, searchParams]);
 
   const handleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
       await signInWithGoogle();
-      router.push("/"); // Redirect to home page after successful sign in
+      // Redirect will happen in useEffect after user state updates
     } catch (error: unknown) {
       console.error("Sign in error:", error);
       const errorMessage =
