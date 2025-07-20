@@ -49,44 +49,31 @@ export default function FullMapView() {
 
   // Handle location updates from LocationDetails
   const handleLocationUpdate = (updatedLocation: HauntedLocation) => {
-    console.log("FullMapView: Received location update:", {
-      locationId: updatedLocation.id,
-      totalReviews: updatedLocation.totalReviews,
-      averageRating: updatedLocation.averageRating,
-      totalSaves: updatedLocation.totalSaves,
-    });
-
     setLocations((prevLocations) => {
       const newLocations = prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       );
-      console.log("FullMapView: Updated locations list");
       return newLocations;
     });
 
     // Also update the selected location if it's the same one
     if (selectedLocation?.id === updatedLocation.id) {
-      console.log("FullMapView: Updating selected location");
       setSelectedLocation(updatedLocation);
     }
   };
 
   // Handle save status changes from LocationDetails
   const handleSaveStatusChange = (locationId: string, isSaved: boolean) => {
-    console.log("FullMapView: Save status changed:", { locationId, isSaved });
-
     setSavedLocationIds((prevSavedIds) => {
       if (isSaved) {
         // Add to saved locations if not already present
         if (!prevSavedIds.includes(locationId)) {
-          console.log("FullMapView: Adding location to saved list");
           return [...prevSavedIds, locationId];
         }
         return prevSavedIds;
       } else {
         // Remove from saved locations
         const updatedIds = prevSavedIds.filter((id) => id !== locationId);
-        console.log("FullMapView: Removing location from saved list");
         return updatedIds;
       }
     });
@@ -119,7 +106,6 @@ export default function FullMapView() {
         updatedSelectedLocation &&
         updatedSelectedLocation !== selectedLocation
       ) {
-        console.log("FullMapView: Syncing selectedLocation with updated data");
         setSelectedLocation(updatedSelectedLocation);
       }
     }

@@ -69,19 +69,10 @@ export default function LocationDetails({
   // Update location data in both local and parent state
   const updateLocationData = (updates: Partial<HauntedLocation>) => {
     const updatedLocation = { ...location, ...updates };
-    console.log("Updating location data:", {
-      locationId: location.id,
-      updates,
-      updatedLocation,
-    });
-
     setLocation(updatedLocation);
 
     if (onLocationUpdate) {
-      console.log("Calling parent onLocationUpdate callback");
       onLocationUpdate(updatedLocation);
-    } else {
-      console.warn("No onLocationUpdate callback provided");
     }
   };
 
@@ -114,7 +105,6 @@ export default function LocationDetails({
       setUserRating(userExistingReview.rating);
       setUserReview(userExistingReview.comment);
       setIsEditingReview(true);
-      console.log("Started editing review:", userExistingReview.id);
     }
   };
 
@@ -123,21 +113,17 @@ export default function LocationDetails({
     setUserRating(0);
     setUserReview("");
     setIsEditingReview(false);
-    console.log("Cancelled editing review");
   };
 
   // Delete review
   const deleteReview = async () => {
     if (!user || !userExistingReview) {
-      console.log("Cannot delete review: no user or existing review");
       return;
     }
 
     if (!confirm("Are you sure you want to delete your review?")) {
       return;
     }
-
-    console.log("Deleting review:", userExistingReview.id);
 
     try {
       // Delete review from Firestore
@@ -188,8 +174,6 @@ export default function LocationDetails({
       setUserRating(0);
       setUserReview("");
       setIsEditingReview(false);
-
-      console.log("Review deleted successfully");
     } catch (error) {
       console.error("Error deleting review:", error);
       alert("Failed to delete review. Please try again.");
@@ -239,13 +223,6 @@ export default function LocationDetails({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(
-          "Fetching data for location:",
-          location.id,
-          "User:",
-          user?.uid
-        );
-
         // Fetch reviews
         const reviewsQuery = query(
           collection(db, "reviews"),
@@ -274,15 +251,11 @@ export default function LocationDetails({
           // Check if this is the current user's review
           if (user && data.userId === user.uid) {
             currentUserReview = review;
-            console.log("Found existing user review:", review);
           }
 
           // Add all reviews to the list (including user's own review)
           fetchedReviews.push(review);
         });
-
-        console.log("Fetched all reviews:", fetchedReviews.length);
-        console.log("User existing review:", currentUserReview ? "Yes" : "No");
 
         // Set all reviews (including user's own review)
         setReviews(fetchedReviews);
@@ -303,10 +276,8 @@ export default function LocationDetails({
           );
           const savesSnapshot = await getDocs(savesQuery);
           const isCurrentlySaved = !savesSnapshot.empty;
-          console.log("Is location saved?", isCurrentlySaved);
           setIsSaved(isCurrentlySaved);
         } else {
-          console.log("No user, setting saved to false");
           setIsSaved(false);
         }
       } catch (error) {
@@ -322,31 +293,18 @@ export default function LocationDetails({
   // Toggle save status
   const toggleSave = async () => {
     if (!user) {
-      console.log("No user, cannot save");
       return;
     }
-
-    console.log(
-      "Toggling save for user:",
-      user.uid,
-      "location:",
-      location.id,
-      "currently saved:",
-      isSaved
-    );
 
     try {
       if (isSaved) {
         // Remove from saves
-        console.log("Removing from saves...");
         const savesQuery = query(
           collection(db, "userSaves"),
           where("locationId", "==", location.id),
           where("userId", "==", user.uid)
         );
         const savesSnapshot = await getDocs(savesQuery);
-
-        console.log("Found saves to delete:", savesSnapshot.docs.length);
 
         for (const saveDoc of savesSnapshot.docs) {
           await deleteDoc(saveDoc.ref);
@@ -358,17 +316,12 @@ export default function LocationDetails({
           await updateDoc(locationRef, {
             totalSaves: increment(-1),
           });
-          console.log("Successfully decremented totalSaves");
 
           // Update local state immediately
           updateLocationData({
             totalSaves: Math.max(0, (location.totalSaves || 1) - 1),
           });
-        } catch (updateError) {
-          console.log(
-            "Error decrementing totalSaves, initializing field:",
-            updateError
-          );
+        } catch {
           // If field doesn't exist, initialize it
           const newTotalSaves = Math.max(0, (location.totalSaves || 1) - 1);
           await updateDoc(locationRef, {
@@ -381,7 +334,6 @@ export default function LocationDetails({
           });
         }
 
-        console.log("Successfully removed save");
         setIsSaved(false);
 
         // Notify parent about save status change
@@ -390,7 +342,6 @@ export default function LocationDetails({
         }
       } else {
         // Add to saves
-        console.log("Adding to saves...");
         await addDoc(collection(db, "userSaves"), {
           locationId: location.id,
           userId: user.uid,
@@ -403,17 +354,12 @@ export default function LocationDetails({
           await updateDoc(locationRef, {
             totalSaves: increment(1),
           });
-          console.log("Successfully incremented totalSaves");
 
           // Update local state immediately
           updateLocationData({
             totalSaves: (location.totalSaves || 0) + 1,
           });
-        } catch (updateError) {
-          console.log(
-            "Error incrementing totalSaves, initializing field:",
-            updateError
-          );
+        } catch {
           // If field doesn't exist, initialize it
           const newTotalSaves = (location.totalSaves || 0) + 1;
           await updateDoc(locationRef, {
@@ -426,7 +372,6 @@ export default function LocationDetails({
           });
         }
 
-        console.log("Successfully added save");
         setIsSaved(true);
 
         // Notify parent about save status change
@@ -443,22 +388,10 @@ export default function LocationDetails({
   // Submit review
   const submitReview = async () => {
     if (!user || !userRating || !userReview.trim()) {
-      console.log("Cannot submit review:", {
-        user: !!user,
-        rating: userRating,
-        review: userReview.trim(),
-      });
       return;
     }
 
     const isUpdating = userExistingReview !== null;
-    console.log(
-      isUpdating ? "Updating existing review:" : "Creating new review:",
-      "location:",
-      location.id,
-      "user:",
-      user.uid
-    );
     setIsSubmitting(true);
 
     try {
@@ -469,8 +402,6 @@ export default function LocationDetails({
           comment: userReview.trim(),
           updatedAt: new Date(),
         });
-
-        console.log("Review updated successfully:", userExistingReview.id);
 
         // Update the current user review state
         const updatedReview: LocationReview = {
@@ -525,8 +456,6 @@ export default function LocationDetails({
           createdAt: new Date(),
         });
 
-        console.log("Review created successfully:", reviewDoc.id);
-
         // Create new review object for state
         const displayName = user.displayName || user.email || "Anonymous";
         const newReview: LocationReview = {
@@ -574,11 +503,6 @@ export default function LocationDetails({
       // setUserReview('');
 
       // Don't refresh all reviews since we're not showing user's review in the list anyway
-      console.log(
-        isUpdating
-          ? "Review updated successfully"
-          : "Review created successfully"
-      );
     } catch (error) {
       console.error("Error submitting review:", error);
     } finally {
