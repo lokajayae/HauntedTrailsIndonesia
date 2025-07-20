@@ -42,10 +42,27 @@ export default function FullMapView() {
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [savedLocationIds, setSavedLocationIds] = useState<string[]>([]);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [hoveredRating, setHoveredRating] = useState(0);
+  const [viewStreetViewTrigger, setViewStreetViewTrigger] = useState(0);
 
   const { user, logOut } = useAuth();
   const router = useRouter();
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showUserMenu) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "Example";
 
@@ -180,6 +197,17 @@ export default function FullMapView() {
     setSelectedLocation(null);
   };
 
+  // Handle Street View from location details
+  const handleViewStreetView = (location: HauntedLocation) => {
+    setSelectedLocation(location);
+    setMapCenter({
+      lat: location.position.latitude,
+      lng: location.position.longitude,
+    });
+    // Trigger Street View by incrementing the trigger counter
+    setViewStreetViewTrigger((prev) => prev + 1);
+  };
+
   // Handle logout
   const handleLogOut = async () => {
     try {
@@ -191,36 +219,17 @@ export default function FullMapView() {
   };
 
   // Render skull rating display
-  const renderSkulls = (
-    rating: number,
-    interactive = false,
-    onRate?: (rating: number) => void
-  ) => {
+  const renderSkulls = (rating: number) => {
     return (
       <div className="flex space-x-1">
-        {[1, 2, 3, 4, 5].map((skull) => {
-          const isActive = interactive
-            ? skull <= (hoveredRating || rating)
-            : skull <= rating;
-
-          return (
-            <Skull
-              key={skull}
-              className={`w-3 h-3 ${
-                isActive ? "text-red-500 fill-red-50" : "text-gray-400"
-              } ${
-                interactive
-                  ? "cursor-pointer transition-colors duration-150"
-                  : ""
-              }`}
-              onClick={interactive && onRate ? () => onRate(skull) : undefined}
-              onMouseEnter={
-                interactive ? () => setHoveredRating(skull) : undefined
-              }
-              onMouseLeave={interactive ? () => setHoveredRating(0) : undefined}
-            />
-          );
-        })}
+        {[1, 2, 3, 4, 5].map((skull) => (
+          <Skull
+            key={skull}
+            className={`w-3 h-3 ${
+              skull <= rating ? "text-red-500 fill-red-50" : "text-gray-400"
+            }`}
+          />
+        ))}
       </div>
     );
   };
@@ -315,6 +324,7 @@ export default function FullMapView() {
             <LocationDetails
               location={selectedLocation}
               onBack={handleBackToList}
+              onViewStreetView={handleViewStreetView}
             />
           ) : (
             <div className="h-full overflow-y-auto">
@@ -437,9 +447,16 @@ export default function FullMapView() {
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 border border-red-900/30 rounded-lg p-2">
+                <div
+                  className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 border border-red-900/30 rounded-lg p-2 z-50 shadow-lg"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Button
-                    onClick={handleLogOut}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowUserMenu(false);
+                      handleLogOut();
+                    }}
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-red-400 hover:bg-red-900/30 hover:text-red-300"
@@ -474,6 +491,7 @@ export default function FullMapView() {
           center={mapCenter}
           zoom={selectedLocation ? 15 : 11}
           selectedLocation={selectedLocation}
+          viewStreetViewTrigger={viewStreetViewTrigger}
           className="w-full h-full"
         />
       </div>

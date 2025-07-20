@@ -18,6 +18,7 @@ interface GoogleMapProps {
   center: { lat: number; lng: number };
   zoom: number;
   selectedLocation?: HauntedLocation | null;
+  viewStreetViewTrigger?: number;
   className?: string;
 }
 
@@ -26,6 +27,7 @@ export default function GoogleMap({
   center,
   zoom,
   selectedLocation,
+  viewStreetViewTrigger,
   className,
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -191,6 +193,18 @@ export default function GoogleMap({
       }, 150);
     }
   }, [selectedLocation, showStreetView, initStreetView]);
+
+  // Handle View button from LocationDetails
+  useEffect(() => {
+    if (
+      selectedLocation &&
+      viewStreetViewTrigger &&
+      viewStreetViewTrigger > 0
+    ) {
+      // Trigger Street View when the View button is clicked
+      openStreetView(selectedLocation);
+    }
+  }, [viewStreetViewTrigger, selectedLocation, openStreetView]);
 
   useEffect(() => {
     if (!apiKey || apiKey === "Example" || loading) {
