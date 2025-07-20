@@ -18,6 +18,7 @@ interface GoogleMapProps {
   center: { lat: number; lng: number };
   zoom: number;
   selectedLocation?: HauntedLocation | null;
+  viewStreetViewTrigger?: number;
   className?: string;
 }
 
@@ -26,6 +27,7 @@ export default function GoogleMap({
   center,
   zoom,
   selectedLocation,
+  viewStreetViewTrigger,
   className,
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -191,6 +193,18 @@ export default function GoogleMap({
       }, 150);
     }
   }, [selectedLocation, showStreetView, initStreetView]);
+
+  // Handle View button from LocationDetails
+  useEffect(() => {
+    if (
+      selectedLocation &&
+      viewStreetViewTrigger &&
+      viewStreetViewTrigger > 0
+    ) {
+      // Trigger Street View when the View button is clicked
+      openStreetView(selectedLocation);
+    }
+  }, [viewStreetViewTrigger, selectedLocation, openStreetView]);
 
   useEffect(() => {
     if (!apiKey || apiKey === "Example" || loading) {
@@ -413,7 +427,7 @@ export default function GoogleMap({
     // Load Google Maps script if not already loaded
     if (!window.google) {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initMap`;
       script.async = true;
       script.defer = true;
 
@@ -478,7 +492,7 @@ export default function GoogleMap({
         <div className="absolute inset-0 bg-black">
           {/* Street View Header */}
           <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 to-black/60 p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-1">
               <div className="text-white">
                 <h3 className="text-xl font-bold text-red-400 mb-1">
                   {currentLocation?.name}

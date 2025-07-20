@@ -3,32 +3,56 @@
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ghost } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Ghost, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function SignIn() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect to intended page after successful sign in
+  useEffect(() => {
+    if (user) {
+      const from = searchParams.get("from") || "/";
+      router.push(from);
+    }
+  }, [user, router, searchParams]);
 
   const handleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
       await signInWithGoogle();
-      router.push("/"); // Redirect to home page after successful sign in
-    } catch (error: any) {
+      // Redirect will happen in useEffect after user state updates
+    } catch (error: unknown) {
       console.error("Sign in error:", error);
-      setError(error.message || "Failed to sign in. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to sign in. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4 relative">
+      {/* Back button positioned at top-left */}
+      <Button
+        onClick={() => router.push("/")}
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4 text-gray-400 hover:text-white hover:bg-red-900/20 z-10"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+
       <Card className="w-full max-w-md bg-gray-900/50 border-red-900/30 backdrop-blur-sm">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
@@ -47,7 +71,7 @@ export default function SignIn() {
               {error}
             </div>
           )}
-          
+
           <Button
             onClick={handleSignIn}
             disabled={loading}
@@ -78,7 +102,7 @@ export default function SignIn() {
           <div className="text-center">
             <p className="text-xs text-gray-500">
               By signing in, you agree to explore haunted locations at your own
-              risk 👻
+              risk
             </p>
           </div>
         </CardContent>

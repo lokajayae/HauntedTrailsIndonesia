@@ -1,10 +1,12 @@
-export { auth as middleware } from "./auth";
+import { NextResponse } from "next/server";
+
+export function middleware() {
+  // For Firebase Auth, we handle authentication client-side
+  // This middleware is just for any other custom logic you might need
+  return NextResponse.next();
+}
 
 export const config = {
-  // Match all request paths except for the ones starting with:
-  // - api (API routes)
-  // - _next/static (static files)
-  // - _next/image (image optimization files)
-  // - favicon.ico (favicon file)
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Apply middleware to all routes (optional)
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

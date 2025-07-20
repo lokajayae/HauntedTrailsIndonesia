@@ -2,6 +2,7 @@
 
 import { Ghost, User, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -35,9 +36,11 @@ export default function Header() {
           ) : user ? (
             <div className="flex items-center space-x-3">
               {user.photoURL ? (
-                <img
+                <Image
                   src={user.photoURL}
                   alt={user.displayName || "User"}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full border border-red-500/50"
                 />
               ) : (
@@ -61,9 +64,9 @@ export default function Header() {
           ) : (
             <Link href="/auth/signin">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                className="text-gray-300 hover:text-red-400"
               >
                 <LogIn className="w-4 h-4" />
                 <span className="hidden md:inline ml-2">Sign In</span>
