@@ -36,12 +36,16 @@ interface LocationDetailsProps {
   location: HauntedLocation;
   onBack: () => void;
   onViewStreetView: (location: HauntedLocation) => void;
+  onLocationUpdate?: (updatedLocation: HauntedLocation) => void;
+  onSaveStatusChange?: (locationId: string, isSaved: boolean) => void;
 }
 
 export default function LocationDetails({
-  location,
+  location: initialLocation,
   onBack,
   onViewStreetView,
+  onLocationUpdate,
+  onSaveStatusChange,
 }: LocationDetailsProps) {
   const [reviews, setReviews] = useState<LocationReview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,8 +57,33 @@ export default function LocationDetails({
   const [userExistingReview, setUserExistingReview] =
     useState<LocationReview | null>(null);
   const [isEditingReview, setIsEditingReview] = useState(false);
+  const [location, setLocation] = useState<HauntedLocation>(initialLocation);
 
   const { user } = useAuth();
+
+  // Update local location when prop changes
+  useEffect(() => {
+    setLocation(initialLocation);
+  }, [initialLocation]);
+
+  // Update location data in both local and parent state
+  const updateLocationData = (updates: Partial<HauntedLocation>) => {
+    const updatedLocation = { ...location, ...updates };
+    console.log("Updating location data:", {
+      locationId: location.id,
+      updates,
+      updatedLocation,
+    });
+
+    setLocation(updatedLocation);
+
+    if (onLocationUpdate) {
+      console.log("Calling parent onLocationUpdate callback");
+      onLocationUpdate(updatedLocation);
+    } else {
+      console.warn("No onLocationUpdate callback provided");
+    }
+  };
 
   // Helper function to handle different date formats from Firestore
   const formatFirestoreDate = useCallback((dateField: unknown): string => {
@@ -125,6 +154,12 @@ export default function LocationDetails({
           averageRating: 0,
           totalReviews: 0,
         });
+
+        // Update local state immediately
+        updateLocationData({
+          averageRating: 0,
+          totalReviews: 0,
+        });
       } else {
         // Recalculate average without the deleted review
         const newAverage =
@@ -132,6 +167,12 @@ export default function LocationDetails({
           newTotal;
 
         await updateDoc(doc(db, "locations", location.id), {
+          averageRating: newAverage,
+          totalReviews: newTotal,
+        });
+
+        // Update local state immediately
+        updateLocationData({
           averageRating: newAverage,
           totalReviews: newTotal,
         });
@@ -318,19 +359,35 @@ export default function LocationDetails({
             totalSaves: increment(-1),
           });
           console.log("Successfully decremented totalSaves");
+
+          // Update local state immediately
+          updateLocationData({
+            totalSaves: Math.max(0, (location.totalSaves || 1) - 1),
+          });
         } catch (updateError) {
           console.log(
             "Error decrementing totalSaves, initializing field:",
             updateError
           );
           // If field doesn't exist, initialize it
+          const newTotalSaves = Math.max(0, (location.totalSaves || 1) - 1);
           await updateDoc(locationRef, {
-            totalSaves: Math.max(0, (location.totalSaves || 1) - 1),
+            totalSaves: newTotalSaves,
+          });
+
+          // Update local state immediately
+          updateLocationData({
+            totalSaves: newTotalSaves,
           });
         }
 
         console.log("Successfully removed save");
         setIsSaved(false);
+
+        // Notify parent about save status change
+        if (onSaveStatusChange) {
+          onSaveStatusChange(location.id, false);
+        }
       } else {
         // Add to saves
         console.log("Adding to saves...");
@@ -347,19 +404,35 @@ export default function LocationDetails({
             totalSaves: increment(1),
           });
           console.log("Successfully incremented totalSaves");
+
+          // Update local state immediately
+          updateLocationData({
+            totalSaves: (location.totalSaves || 0) + 1,
+          });
         } catch (updateError) {
           console.log(
             "Error incrementing totalSaves, initializing field:",
             updateError
           );
           // If field doesn't exist, initialize it
+          const newTotalSaves = (location.totalSaves || 0) + 1;
           await updateDoc(locationRef, {
-            totalSaves: (location.totalSaves || 0) + 1,
+            totalSaves: newTotalSaves,
+          });
+
+          // Update local state immediately
+          updateLocationData({
+            totalSaves: newTotalSaves,
           });
         }
 
         console.log("Successfully added save");
         setIsSaved(true);
+
+        // Notify parent about save status change
+        if (onSaveStatusChange) {
+          onSaveStatusChange(location.id, true);
+        }
       }
     } catch (error) {
       console.error("Error toggling save:", error);
@@ -435,6 +508,11 @@ export default function LocationDetails({
           await updateDoc(doc(db, "locations", location.id), {
             averageRating: newAverage,
           });
+
+          // Update local state immediately
+          updateLocationData({
+            averageRating: newAverage,
+          });
         }
       } else {
         // Create new review
@@ -463,7 +541,6 @@ export default function LocationDetails({
         };
 
         setUserExistingReview(newReview);
-        setIsEditingReview(true);
 
         // Add the new review to the reviews list
         setReviews((prevReviews) => [newReview, ...prevReviews]);
@@ -481,6 +558,12 @@ export default function LocationDetails({
           (currentAverage * currentTotal + userRating) / newTotal;
 
         await updateDoc(doc(db, "locations", location.id), {
+          averageRating: newAverage,
+          totalReviews: newTotal,
+        });
+
+        // Update local state immediately
+        updateLocationData({
           averageRating: newAverage,
           totalReviews: newTotal,
         });
@@ -524,6 +607,21 @@ export default function LocationDetails({
             onClick={interactive && onRate ? () => onRate(skull) : undefined}
           />
         ))}
+      </div>
+    );
+  };
+
+  // Generate user avatar with initials
+  const generateUserAvatar = (userDisplayName: string) => {
+    const initials = userDisplayName
+      .split(" ")
+      .map((name) => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join("");
+
+    return (
+      <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+        {initials}
       </div>
     );
   };
@@ -718,51 +816,72 @@ export default function LocationDetails({
               reviews.map((review) => (
                 <Card key={review.id} className="bg-black/40 border-red-900/30">
                   <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-white text-sm">
-                            {review.userDisplayName}
-                            {user && review.userId === user.uid && (
-                              <span className="text-red-400 text-xs ml-1">
-                                (You)
+                    <div className="space-y-3">
+                      {/* Header with avatar, name, and actions */}
+                      <div className="flex items-start gap-3">
+                        {/* User Avatar */}
+                        {generateUserAvatar(review.userDisplayName)}
+
+                        {/* User info and content */}
+                        <div className="flex-1 min-w-0">
+                          {/* User name and date/actions row */}
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              {/* User name */}
+                              <div className="mb-1">
+                                <span className="font-medium text-white text-sm">
+                                  {review.userDisplayName}
+                                  {user && review.userId === user.uid && (
+                                    <span className="text-red-400 text-xs ml-1">
+                                      (You)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              {/* Rating skulls */}
+                              <div className="flex items-center">
+                                {renderSkulls(review.rating)}
+                              </div>
+                            </div>
+
+                            {/* Date and actions */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-xs text-gray-500">
+                                {new Date(
+                                  review.createdAt
+                                ).toLocaleDateString()}
                               </span>
-                            )}
-                          </span>
-                          {renderSkulls(review.rating)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </span>
-                          {user &&
-                            review.userId === user.uid &&
-                            !isEditingReview && (
-                              <>
-                                <Button
-                                  onClick={startEditingReview}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-2 py-1 h-6"
-                                >
-                                  Edit
-                                </Button>
-                                <Button
-                                  onClick={deleteReview}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-2 py-1 h-6"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-1" />
-                                </Button>
-                              </>
-                            )}
+                              {user &&
+                                review.userId === user.uid &&
+                                !isEditingReview && (
+                                  <div className="flex gap-1">
+                                    <Button
+                                      onClick={startEditingReview}
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-2 py-1 h-6"
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      onClick={deleteReview}
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-1 py-1 h-6"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+
+                          {/* Comment */}
+                          <p className="text-gray-300 text-sm leading-relaxed break-words">
+                            {review.comment}
+                          </p>
                         </div>
                       </div>
-
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {review.comment}
-                      </p>
                     </div>
                   </CardContent>
                 </Card>

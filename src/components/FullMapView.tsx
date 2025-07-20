@@ -47,6 +47,51 @@ export default function FullMapView() {
   const { user, logOut } = useAuth();
   const router = useRouter();
 
+  // Handle location updates from LocationDetails
+  const handleLocationUpdate = (updatedLocation: HauntedLocation) => {
+    console.log("FullMapView: Received location update:", {
+      locationId: updatedLocation.id,
+      totalReviews: updatedLocation.totalReviews,
+      averageRating: updatedLocation.averageRating,
+      totalSaves: updatedLocation.totalSaves,
+    });
+
+    setLocations((prevLocations) => {
+      const newLocations = prevLocations.map((loc) =>
+        loc.id === updatedLocation.id ? updatedLocation : loc
+      );
+      console.log("FullMapView: Updated locations list");
+      return newLocations;
+    });
+
+    // Also update the selected location if it's the same one
+    if (selectedLocation?.id === updatedLocation.id) {
+      console.log("FullMapView: Updating selected location");
+      setSelectedLocation(updatedLocation);
+    }
+  };
+
+  // Handle save status changes from LocationDetails
+  const handleSaveStatusChange = (locationId: string, isSaved: boolean) => {
+    console.log("FullMapView: Save status changed:", { locationId, isSaved });
+
+    setSavedLocationIds((prevSavedIds) => {
+      if (isSaved) {
+        // Add to saved locations if not already present
+        if (!prevSavedIds.includes(locationId)) {
+          console.log("FullMapView: Adding location to saved list");
+          return [...prevSavedIds, locationId];
+        }
+        return prevSavedIds;
+      } else {
+        // Remove from saved locations
+        const updatedIds = prevSavedIds.filter((id) => id !== locationId);
+        console.log("FullMapView: Removing location from saved list");
+        return updatedIds;
+      }
+    });
+  };
+
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
@@ -63,6 +108,75 @@ export default function FullMapView() {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [showUserMenu]);
+
+  // Ensure selectedLocation stays in sync with updated location data
+  useEffect(() => {
+    if (selectedLocation) {
+      const updatedSelectedLocation = locations.find(
+        (loc) => loc.id === selectedLocation.id
+      );
+      if (
+        updatedSelectedLocation &&
+        updatedSelectedLocation !== selectedLocation
+      ) {
+        console.log("FullMapView: Syncing selectedLocation with updated data");
+        setSelectedLocation(updatedSelectedLocation);
+      }
+    }
+  }, [locations, selectedLocation]);
+
+  // Handle location selection
+  const handleLocationSelect = (location: HauntedLocation) => {
+    setSelectedLocation(location);
+    setMapCenter({
+      lat: location.position.latitude,
+      lng: location.position.longitude,
+    });
+    setShowLocationDetails(true);
+  };
+
+  // Handle back from location details
+  const handleBackToList = () => {
+    setShowLocationDetails(false);
+    setSelectedLocation(null);
+  };
+
+  // Handle Street View from location details
+  const handleViewStreetView = (location: HauntedLocation) => {
+    setSelectedLocation(location);
+    setMapCenter({
+      lat: location.position.latitude,
+      lng: location.position.longitude,
+    });
+    // Trigger Street View by incrementing the trigger counter
+    setViewStreetViewTrigger((prev) => prev + 1);
+  };
+
+  // Handle logout
+  const handleLogOut = async () => {
+    try {
+      await logOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // Render skull rating display
+  const renderSkulls = (rating: number) => {
+    return (
+      <div className="flex space-x-1">
+        {[1, 2, 3, 4, 5].map((skull) => (
+          <Skull
+            key={skull}
+            className={`w-3 h-3 ${
+              skull <= rating ? "text-red-500 fill-red-50" : "text-gray-400"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "Example";
 
@@ -181,59 +295,6 @@ export default function FullMapView() {
     setFilteredLocations(filtered);
   }, [searchQuery, locations, showSavedOnly, savedLocationIds]);
 
-  // Handle location selection
-  const handleLocationSelect = (location: HauntedLocation) => {
-    setSelectedLocation(location);
-    setMapCenter({
-      lat: location.position.latitude,
-      lng: location.position.longitude,
-    });
-    setShowLocationDetails(true);
-  };
-
-  // Handle back from location details
-  const handleBackToList = () => {
-    setShowLocationDetails(false);
-    setSelectedLocation(null);
-  };
-
-  // Handle Street View from location details
-  const handleViewStreetView = (location: HauntedLocation) => {
-    setSelectedLocation(location);
-    setMapCenter({
-      lat: location.position.latitude,
-      lng: location.position.longitude,
-    });
-    // Trigger Street View by incrementing the trigger counter
-    setViewStreetViewTrigger((prev) => prev + 1);
-  };
-
-  // Handle logout
-  const handleLogOut = async () => {
-    try {
-      await logOut();
-      router.push("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  // Render skull rating display
-  const renderSkulls = (rating: number) => {
-    return (
-      <div className="flex space-x-1">
-        {[1, 2, 3, 4, 5].map((skull) => (
-          <Skull
-            key={skull}
-            className={`w-3 h-3 ${
-              skull <= rating ? "text-red-500 fill-red-50" : "text-gray-400"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="flex h-screen bg-black">
       {/* Sidebar */}
@@ -325,6 +386,8 @@ export default function FullMapView() {
               location={selectedLocation}
               onBack={handleBackToList}
               onViewStreetView={handleViewStreetView}
+              onLocationUpdate={handleLocationUpdate}
+              onSaveStatusChange={handleSaveStatusChange}
             />
           ) : (
             <div className="h-full overflow-y-auto">
@@ -391,7 +454,7 @@ export default function FullMapView() {
                   {filteredLocations.length === 0 && !loading && (
                     <div className="text-center py-8">
                       <div className="text-gray-500 text-4xl mb-2">
-                        {showSavedOnly ? "💔" : "🔍"}
+                        {showSavedOnly ? "❗" : "🔍"}
                       </div>
                       <p className="text-gray-400 text-sm">
                         {showSavedOnly
