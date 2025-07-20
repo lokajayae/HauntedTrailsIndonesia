@@ -21,7 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import {
-  Star,
+  Skull,
   Heart,
   MessageCircle,
   MapPin,
@@ -175,23 +175,25 @@ export default function LocationDetails({
     }
   };
 
-  // Render star rating
-  const renderStars = (
+  // Render skull rating instead of stars
+  const renderSkulls = (
     rating: number,
     interactive = false,
     onRate?: (rating: number) => void
   ) => {
     return (
       <div className="flex space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
+        {[1, 2, 3, 4, 5].map((skull) => (
+          <Skull
+            key={skull}
             className={`w-4 h-4 ${
-              star <= rating
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-400"
-            } ${interactive ? "cursor-pointer hover:text-yellow-400" : ""}`}
-            onClick={interactive && onRate ? () => onRate(star) : undefined}
+              skull <= rating ? "text-red-500 fill-red-50" : "text-gray-400"
+            } ${
+              interactive
+                ? "cursor-pointer hover:text-red-500 hover:fill-red-50"
+                : ""
+            }`}
+            onClick={interactive && onRate ? () => onRate(skull) : undefined}
           />
         ))}
       </div>
@@ -201,7 +203,6 @@ export default function LocationDetails({
   if (loading) {
     return (
       <div className="p-4 text-center">
-        <div className="text-red-500 text-2xl mb-2 animate-pulse">👻</div>
         <p className="text-gray-400 text-sm">Loading location details...</p>
       </div>
     );
@@ -239,7 +240,7 @@ export default function LocationDetails({
           <div className="flex items-center space-x-3">
             {location.averageRating ? (
               <div className="flex items-center space-x-1">
-                {renderStars(Math.round(location.averageRating))}
+                {renderSkulls(Math.round(location.averageRating))}
                 <span className="text-sm text-gray-300">
                   {location.averageRating.toFixed(1)} (
                   {location.totalReviews || 0})
@@ -291,7 +292,7 @@ export default function LocationDetails({
                 <label className="text-xs text-gray-400 block mb-1">
                   Rating
                 </label>
-                {renderStars(userRating, true, setUserRating)}
+                {renderSkulls(userRating, true, setUserRating)}
               </div>
 
               <div>
@@ -352,7 +353,7 @@ export default function LocationDetails({
                           <span className="text-sm font-medium text-white truncate">
                             {review.userDisplayName}
                           </span>
-                          {renderStars(review.rating)}
+                          {renderSkulls(review.rating)}
                         </div>
 
                         <p className="text-xs text-gray-300 leading-relaxed mb-2">
