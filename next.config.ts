@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       "avatars.githubusercontent.com",
     ],
   },
+  devIndicators: false,
 };
 
 export default nextConfig;

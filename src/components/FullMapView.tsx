@@ -6,10 +6,11 @@ import { db } from "@/lib/firebase";
 import { HauntedLocation } from "@/types/location";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Ghost, Search, MapPin, X, LogOut } from "lucide-react";
+import { Ghost, Search, MapPin, X, LogOut, Star } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import GoogleMap from "./GoogleMap";
+import LocationDetails from "./LocationDetails";
 import Link from "next/link";
 
 export default function FullMapView() {
@@ -26,6 +27,7 @@ export default function FullMapView() {
     lng: 107.62049428187026,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showLocationDetails, setShowLocationDetails] = useState(false);
 
   const { logOut } = useAuth();
   const router = useRouter();
@@ -112,6 +114,31 @@ export default function FullMapView() {
       lat: location.position.latitude,
       lng: location.position.longitude,
     });
+    setShowLocationDetails(true);
+  };
+
+  // Handle back from location details
+  const handleBackToList = () => {
+    setShowLocationDetails(false);
+    setSelectedLocation(null);
+  };
+
+  // Render star rating display
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-3 h-3 ${
+              star <= rating
+                ? "text-yellow-400 fill-yellow-400"
+                : "text-gray-400"
+            }`}
+          />
+        ))}
+      </div>
+    );
   };
 
   // Handle logout
@@ -173,58 +200,83 @@ export default function FullMapView() {
           </div>
         </div>
 
-        {/* Locations List */}
-        <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="p-4 text-center">
-              <p className="text-gray-400 text-sm">
-                Loading haunted locations...
-              </p>
-            </div>
+        {/* Locations List or Location Details */}
+        <div className="flex-1 overflow-hidden">
+          {showLocationDetails && selectedLocation ? (
+            <LocationDetails
+              location={selectedLocation}
+              onBack={handleBackToList}
+            />
           ) : (
-            <div className="p-4 space-y-3">
-              {filteredLocations.map((location) => (
-                <Card
-                  key={location.id}
-                  className={`cursor-pointer transition-all duration-200 ${
-                    selectedLocation?.id === location.id
-                      ? "bg-red-900/20 border-red-500"
-                      : "bg-black/40 border-red-900/30 hover:bg-red-900/10 hover:border-red-500/50"
-                  }`}
-                  onClick={() => handleLocationSelect(location)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-sm">👻</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white text-sm mb-1 truncate">
-                          {location.name}
-                        </h3>
-                        <p className="text-gray-300 text-xs line-clamp-2">
-                          {location.description}
-                        </p>
-                        <div className="flex items-center mt-2 text-xs text-gray-400">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          <span>
-                            {location.position.latitude.toFixed(4)},{" "}
-                            {location.position.longitude.toFixed(4)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {filteredLocations.length === 0 && !loading && (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 text-4xl mb-2">🔍</div>
-                  <p className="text-gray-400 text-sm">No locations found</p>
-                  <p className="text-gray-500 text-xs mt-1">
-                    Try a different search term
+            <div className="h-full overflow-y-auto">
+              {loading ? (
+                <div className="p-4 text-center">
+                  <p className="text-gray-400 text-sm">
+                    Loading haunted locations...
                   </p>
+                </div>
+              ) : (
+                <div className="p-4 space-y-3">
+                  {filteredLocations.map((location) => (
+                    <Card
+                      key={location.id}
+                      className={`cursor-pointer transition-all duration-200 ${
+                        selectedLocation?.id === location.id
+                          ? "bg-red-900/20 border-red-500"
+                          : "bg-black/40 border-red-900/30 hover:bg-red-900/10 hover:border-red-500/50"
+                      }`}
+                      onClick={() => handleLocationSelect(location)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm">👻</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-white text-sm mb-1 truncate">
+                              {location.name}
+                            </h3>
+                            <p className="text-gray-300 text-xs line-clamp-2">
+                              {location.description}
+                            </p>
+
+                            {/* Rating display */}
+                            {location.averageRating && (
+                              <div className="flex items-center mt-1 space-x-1">
+                                {renderStars(
+                                  Math.round(location.averageRating)
+                                )}
+                                <span className="text-xs text-gray-400">
+                                  {location.averageRating.toFixed(1)} (
+                                  {location.totalReviews || 0})
+                                </span>
+                              </div>
+                            )}
+
+                            <div className="flex items-center mt-2 text-xs text-gray-400">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              <span>
+                                {location.position.latitude.toFixed(4)},{" "}
+                                {location.position.longitude.toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {filteredLocations.length === 0 && !loading && (
+                    <div className="text-center py-8">
+                      <div className="text-gray-500 text-4xl mb-2">🔍</div>
+                      <p className="text-gray-400 text-sm">
+                        No locations found
+                      </p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        Try a different search term
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

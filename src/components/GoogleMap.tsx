@@ -413,7 +413,7 @@ export default function GoogleMap({
     // Load Google Maps script if not already loaded
     if (!window.google) {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initMap`;
       script.async = true;
       script.defer = true;
 
