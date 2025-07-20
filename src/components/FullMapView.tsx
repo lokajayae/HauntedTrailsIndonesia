@@ -282,88 +282,91 @@ export default function FullMapView() {
   }, [searchQuery, locations, showSavedOnly, savedLocationIds]);
 
   return (
-    <div className="flex h-screen bg-black">
+    <div className="h-screen flex bg-black text-white relative">
       {/* Sidebar */}
       <div
-        className={`${
-          sidebarOpen ? "w-96" : "w-0"
+        className={`fixed left-0 top-0 h-full w-[400px] z-20 transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-all duration-300 bg-gray-900 border-r border-red-900/30 overflow-hidden flex flex-col`}
       >
-        {/* Header - Only show when not showing location details */}
-        {!showLocationDetails && (
-          <div className="p-4 border-b border-red-900/30">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <Link
-                href="/"
-                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-              >
-                <Ghost className="w-6 h-6 text-red-500" />
-                <h1 className="text-xl font-bold text-white spooky-font">
-                  Haunted<span className="text-red-500">Trails</span>
-                </h1>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarOpen(false)}
-                className="text-gray-400 hover:text-red-400"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+        {/* Header - Always visible */}
+        <div className="p-4 border-b border-red-900/30 flex-shrink-0">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <Ghost className="w-6 h-6 text-red-500" />
+              <h1 className="text-xl font-bold text-white spooky-font">
+                Haunted<span className="text-red-500">Trails</span>
+              </h1>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-400 hover:text-red-400"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
-            {/* Filter Buttons */}
-            <div className="flex space-x-2 mb-4">
-              <Button
-                variant={!showSavedOnly ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowSavedOnly(false)}
-                className={`flex-1 text-xs ${
-                  !showSavedOnly
-                    ? "bg-red-600 hover:bg-red-700 text-white"
-                    : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400 "
-                }`}
-              >
-                <MapPin className="w-3 h-3 mr-1" />
-                All Locations
-              </Button>
-              {user && (
+          {/* Filter Buttons and Search - Only show when not showing location details */}
+          {!showLocationDetails && (
+            <>
+              {/* Filter Buttons */}
+              <div className="flex space-x-2 mb-4">
                 <Button
-                  variant={showSavedOnly ? "default" : "outline"}
+                  variant={!showSavedOnly ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setShowSavedOnly(true)}
+                  onClick={() => setShowSavedOnly(false)}
                   className={`flex-1 text-xs ${
-                    showSavedOnly
+                    !showSavedOnly
                       ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
+                      : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400 "
                   }`}
                 >
-                  <Heart className="w-3 h-3 mr-1" />
-                  Saved ({savedLocationIds.length})
+                  <MapPin className="w-3 h-3 mr-1" />
+                  All Locations
                 </Button>
-              )}
-            </div>
+                {user && (
+                  <Button
+                    variant={showSavedOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowSavedOnly(true)}
+                    className={`flex-1 text-xs ${
+                      showSavedOnly
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
+                    }`}
+                  >
+                    <Heart className="w-3 h-3 mr-1" />
+                    Saved ({savedLocationIds.length})
+                  </Button>
+                )}
+              </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search haunted locations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/50 border border-red-900/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
-              />
-            </div>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search haunted locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-black/50 border border-red-900/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+                />
+              </div>
 
-            {/* Results count */}
-            <div className="mt-2 text-sm text-gray-400">
-              {filteredLocations.length} location
-              {filteredLocations.length !== 1 ? "s" : ""} found
-            </div>
-          </div>
-        )}
+              {/* Results count */}
+              <div className="mt-2 text-sm text-gray-400">
+                {filteredLocations.length} location
+                {filteredLocations.length !== 1 ? "s" : ""} found
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Locations List or Location Details */}
         <div className="flex-1 overflow-hidden">
@@ -461,8 +464,8 @@ export default function FullMapView() {
         </div>
 
         {/* Footer - User Profile */}
-        {user && !showLocationDetails && (
-          <div className="p-4 border-t border-red-900/30">
+        {user && (
+          <div className="p-4 border-t border-red-900/30 flex-shrink-0">
             <div className="relative">
               <Button
                 variant="ghost"
@@ -521,7 +524,11 @@ export default function FullMapView() {
       </div>
 
       {/* Main Map Area */}
-      <div className="flex-1 relative">
+      <div
+        className={`flex-1 relative transition-all duration-300 ${
+          sidebarOpen ? "ml-[400px]" : "ml-0"
+        }`}
+      >
         {/* Toggle Sidebar Button */}
         {!sidebarOpen && (
           <Button
