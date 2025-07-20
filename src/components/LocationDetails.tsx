@@ -686,7 +686,7 @@ export default function LocationDetails({
                 className={
                   isSaved
                     ? "bg-red-600 hover:bg-red-700 text-white"
-                    : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                    : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
                 }
                 disabled={!user}
               >
@@ -700,7 +700,7 @@ export default function LocationDetails({
                 onClick={getDirections}
                 variant="outline"
                 size="sm"
-                className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
                 disabled={gettingLocation}
               >
                 <Navigation className="w-4 h-4 mr-2" />
@@ -711,7 +711,7 @@ export default function LocationDetails({
                 onClick={() => onViewStreetView(location)}
                 variant="outline"
                 size="sm"
-                className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
               >
                 <Eye className="w-4 h-4 mr-2" />
                 View
@@ -790,7 +790,7 @@ export default function LocationDetails({
                         onClick={cancelEditingReview}
                         variant="outline"
                         size="sm"
-                        className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                        className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
                         disabled={isSubmitting}
                       >
                         Cancel
@@ -859,7 +859,7 @@ export default function LocationDetails({
                                       onClick={startEditingReview}
                                       variant="outline"
                                       size="sm"
-                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-2 py-1 h-6"
+                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400 text-xs px-2 py-1 h-6"
                                     >
                                       Edit
                                     </Button>
@@ -867,7 +867,7 @@ export default function LocationDetails({
                                       onClick={deleteReview}
                                       variant="outline"
                                       size="sm"
-                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-xs px-1 py-1 h-6"
+                                      className="border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400 text-xs px-1 py-1 h-6"
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </Button>

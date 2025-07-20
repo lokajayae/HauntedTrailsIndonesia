@@ -336,7 +336,7 @@ export default function FullMapView() {
                 className={`flex-1 text-xs ${
                   !showSavedOnly
                     ? "bg-red-600 hover:bg-red-700 text-white"
-                    : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                    : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400 "
                 }`}
               >
                 <MapPin className="w-3 h-3 mr-1" />
@@ -350,7 +350,7 @@ export default function FullMapView() {
                   className={`flex-1 text-xs ${
                     showSavedOnly
                       ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30"
+                      : "border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400"
                   }`}
                 >
                   <Heart className="w-3 h-3 mr-1" />
@@ -481,7 +481,7 @@ export default function FullMapView() {
               <Button
                 variant="ghost"
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-full justify-start border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:border-red-400 hover:text-red-400"
+                className="w-full justify-start border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 hover:text-red-400  hover:border-red-400 "
               >
                 <div className="flex items-center space-x-3 flex-1">
                   {user.photoURL ? (
