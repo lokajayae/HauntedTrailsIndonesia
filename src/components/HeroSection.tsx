@@ -13,63 +13,63 @@ export default function HeroSection() {
         <div className="fog-effect absolute inset-0"></div>
       </div>
 
-      <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
+      <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Main Title */}
-        <h1 className="text-4xl md:text-7xl mb-6 font-bold text-white spooky-font text-glow">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl mb-4 sm:mb-6 font-bold text-white spooky-font text-glow leading-tight">
           Indonesia<span className="text-red-500"> Urban Legends</span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg md:text-xl mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
           Discover the darkest corners of Indonesia through interactive maps,
           real stories, and spine-chilling experiences. Venture into the
           supernatural realm where legends come alive.
         </p>
 
         {/* CTA Button */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           <a href="/map">
             <Button
               size="lg"
-              className="bg-red-600 hover:bg-red-700 text-white glow-red px-8 py-3 text-lg"
+              className="bg-red-600 hover:bg-red-700 text-white glow-red px-6 sm:px-8 py-2 sm:py-3 text-base sm:text-lg w-full sm:w-auto"
             >
-              <MapPin className="w-5 h-5 mr-2" />
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Explore Haunted Map
             </Button>
           </a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-6 hover:border-red-500/40 transition-all duration-300">
-            <div className="flex justify-center mb-4">
-              <MapPin className="w-8 h-8 text-red-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-center">
+          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 sm:p-6 hover:border-red-500/40 transition-all duration-300">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
             </div>
-            <div className="text-xl font-bold text-red-400 mb-2">
+            <div className="text-lg sm:text-xl font-bold text-red-400 mb-2">
               Interactive Maps
             </div>
-            <div className="text-gray-300 text-sm">
+            <div className="text-gray-300 text-xs sm:text-sm">
               Explore haunted locations with Google Maps integration
             </div>
           </div>
-          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-6 hover:border-red-500/40 transition-all duration-300">
-            <div className="flex justify-center mb-4">
-              <MessageCircle className="w-8 h-8 text-red-500" />
+          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 sm:p-6 hover:border-red-500/40 transition-all duration-300">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
             </div>
-            <div className="text-xl font-bold text-red-400 mb-2">
+            <div className="text-lg sm:text-xl font-bold text-red-400 mb-2">
               Reviews & Ratings
             </div>
-            <div className="text-gray-300 text-sm">
+            <div className="text-gray-300 text-xs sm:text-sm">
               Share your experiences and rate haunted locations
             </div>
           </div>
-          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-6 hover:border-red-500/40 transition-all duration-300">
-            <div className="flex justify-center mb-4">
-              <Heart className="w-8 h-8 text-red-500" />
+          <div className="bg-black/40 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 sm:p-6 hover:border-red-500/40 transition-all duration-300 sm:col-span-2 lg:col-span-1">
+            <div className="flex justify-center mb-3 sm:mb-4">
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
             </div>
-            <div className="text-xl font-bold text-red-400 mb-2">
+            <div className="text-lg sm:text-xl font-bold text-red-400 mb-2">
               Save Favorites
             </div>
-            <div className="text-gray-300 text-sm">
+            <div className="text-gray-300 text-xs sm:text-sm">
               Bookmark your favorite haunted places and access them anytime
             </div>
           </div>
