@@ -58,6 +58,7 @@ export default function LocationDetails({
     useState<LocationReview | null>(null);
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [location, setLocation] = useState<HauntedLocation>(initialLocation);
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   const { user } = useAuth();
 
@@ -516,19 +517,36 @@ export default function LocationDetails({
     interactive = false,
     onRate?: (rating: number) => void
   ) => {
+    const handleMouseEnter = (skull: number) => {
+      if (interactive) {
+        setHoveredRating(skull);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (interactive) {
+        setHoveredRating(0);
+      }
+    };
+
+    const displayRating =
+      interactive && hoveredRating > 0 ? hoveredRating : rating;
+
     return (
       <div className="flex space-x-1">
         {[1, 2, 3, 4, 5].map((skull) => (
           <Skull
             key={skull}
             className={`w-4 h-4 ${
-              skull <= rating ? "text-red-500 fill-red-50" : "text-gray-400"
+              skull <= displayRating
+                ? "text-red-500 fill-red-50"
+                : "text-gray-400"
             } ${
-              interactive
-                ? "cursor-pointer hover:text-red-500 hover:fill-red-50"
-                : ""
+              interactive ? "cursor-pointer transition-colors duration-150" : ""
             }`}
             onClick={interactive && onRate ? () => onRate(skull) : undefined}
+            onMouseEnter={() => handleMouseEnter(skull)}
+            onMouseLeave={handleMouseLeave}
           />
         ))}
       </div>

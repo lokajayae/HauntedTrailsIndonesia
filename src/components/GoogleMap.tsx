@@ -505,7 +505,6 @@ export default function GoogleMap({
                 onClick={closeStreetView}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow-lg"
               >
-                <span>×</span>
                 <span>Close</span>
               </button>
             </div>

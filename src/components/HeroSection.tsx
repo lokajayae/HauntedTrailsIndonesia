@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { MapPin, Heart, MessageCircle } from "lucide-react";
 
 export default function HeroSection() {
@@ -15,22 +14,9 @@ export default function HeroSection() {
       </div>
 
       <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
-        {/* Badge */}
-        <Badge
-          variant="outline"
-          className="mb-6 border-red-500/30 text-red-400 bg-red-950/20 hover:bg-red-900/30 text-sm px-4 py-1"
-        >
-          <span className="animate-pulse mr-2">👻</span>
-          Explore Indonesia&apos;s Dark Side
-        </Badge>
-
         {/* Main Title */}
-        <h1 className="text-4xl md:text-7xl font-bold mb-6 text-white tracking-tight">
-          <span className="bg-gradient-to-r from-red-400 via-red-500 to-red-600 bg-clip-text text-transparent drop-shadow-2xl">
-            Haunted Trails
-          </span>
-          <br />
-          <span className="text-white/90 text-3xl md:text-5xl">Indonesia</span>
+        <h1 className="text-4xl md:text-7xl mb-6 font-bold text-white spooky-font text-glow">
+          Indonesia<span className="text-red-500"> Urban Legends</span>
         </h1>
 
         {/* Subtitle */}
