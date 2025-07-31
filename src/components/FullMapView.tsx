@@ -297,9 +297,9 @@ export default function FullMapView() {
               href="/"
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              <Ghost className="w-6 h-6 text-red-500" />
-              <h1 className="text-xl font-bold text-white spooky-font">
-                Haunted<span className="text-red-500">Trails</span>
+              <Ghost className="w-8 h-8 text-red-500" />
+              <h1 className="text-2xl font-bold text-white spooky-font text-glow">
+                HauntedTrails<span className="text-red-500">Indonesia</span>
               </h1>
             </Link>
             <Button

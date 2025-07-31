@@ -1,17 +1,20 @@
 "use client";
 
-import { Ghost, User, LogOut, LogIn } from "lucide-react";
+import { Ghost, User, LogOut, LogIn, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export default function Header() {
   const { user, logOut, loading } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
       await logOut();
+      setIsDropdownOpen(false);
     } catch (error) {
       console.error("Sign out error:", error);
     }
@@ -34,32 +37,48 @@ export default function Header() {
           {loading ? (
             <div className="w-8 h-8 animate-pulse bg-gray-700 rounded-full"></div>
           ) : user ? (
-            <div className="flex items-center space-x-3">
-              {user.photoURL ? (
-                <Image
-                  src={user.photoURL}
-                  alt={user.displayName || "User"}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full border border-red-500/50"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+            <div className="relative">
+              <Button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                variant="ghost"
+                className="flex items-center space-x-3 text-white hover:text-red-400 p-2"
+              >
+                {user.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt={user.displayName || "User"}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full border border-red-500/50"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <span className="text-sm hidden md:block">
+                  {user.displayName || user.email}
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-md border border-red-900/30 rounded-lg shadow-lg">
+                  <div className="p-2">
+                    <div className="px-3 py-2 text-sm text-gray-300 border-b border-red-900/20">
+                      {user.displayName || user.email}
+                    </div>
+                    <Button
+                      onClick={handleSignOut}
+                      variant="ghost"
+                      className="w-full justify-start text-gray-300 hover:text-red-400 hover:bg-red-900/20 mt-1"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
                 </div>
               )}
-              <span className="text-sm text-white hidden md:block">
-                {user.displayName || user.email}
-              </span>
-              <Button
-                onClick={handleSignOut}
-                variant="ghost"
-                size="sm"
-                className="text-gray-300 hover:text-red-400"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline ml-2">Sign Out</span>
-              </Button>
             </div>
           ) : (
             <Link href="/auth/signin">
